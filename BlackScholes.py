@@ -98,6 +98,9 @@ def plot_greeks(greeks_data, x_label="X", title_prefix=""):
 
     plt.suptitle(f"Greeks en fonction de {x_label}", fontsize=14)
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+<<<<<<< HEAD
+    plt.show()
+=======
     plt.show()
     
 option = black_scholes(237.8, 240, 3/365, 0.04, 1.46)
@@ -105,3 +108,4 @@ print(option["price"])
 S_values = np.linspace(0.95 * 237.8, 1.05 * 237.8, 100)
 greeks = greeks_over_x(S_values, 240, 3/365, 0.04, 1.46)
 plot_greeks(greeks)
+>>>>>>> main

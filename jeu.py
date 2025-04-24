@@ -5,15 +5,17 @@ import re
 from BlackScholes import black_scholes, greeks_over_x, plot_greeks
 
 # ---- Paramètres de base ----
-ticker_symbol = "TSLA"
+ticker_symbol = "AAPL"
 start_date = "2025-03-20"
 end_date = "2025-05-16"
 option_type = "call"     # "call" ou "put"
-strike_price = 227.5
-premium = 20.05
+strike_price = 195
+premium = 8.55
 contract_size = 100
-risk_free_rate = 0.0435  # Taux d'intérêt sans risque (4% par an)
+risk_free_rate = 0.04  # Taux d'intérêt sans risque
 vol_period = 252
+
+noise = 0.01     # % de fluctation max de l'IV par rapport a la vol théorique
 
 # ---- Téléchargement des données ----
 data = yf.download(ticker_symbol, start=start_date, end=end_date)[['Close']]
@@ -24,6 +26,9 @@ data['Date'] = data['Date'].dt.date
 # Calcul de la volatilité (écart-type des rendements quotidiens)
 data['Returns'] = data['Close'].pct_change()
 volatility = data['Returns'].std() * np.sqrt(vol_period)                        # Revoir le calcule de la vol
+# Initialisation de la volatilité implicite simulée
+vol_imp = volatility  # Valeur de base, dérivée de la volatilité historique
+vol_history = [vol_imp]
 
 # ---- Simulation ----
 print(f"\n🏁 Début de la simulation pour l'option {option_type.upper()} sur {ticker_symbol}")
@@ -42,16 +47,24 @@ for i, row in data.iterrows():
     # --- FIN DE PAS PROPRE ---
     close = float(row['Close'].iloc[0])
     
+    # Variation aléatoire de la volatilité implicite (simulation réaliste)
+    daily_noise = np.random.normal(0, noise)
+    market_impact = 0.05 * data['Returns'].iloc[i] if i > 0 else 0  # Réaction aux rendements
+
+    # Simulation d'une nouvelle volatilité implicite
+    vol_imp = max(0.01, vol_imp * (1 + daily_noise + market_impact))  # Garde une vol minimale
+    vol_history.append(vol_imp)
+
     # Calcul du temps restant jusqu'à expiration
     expiry_date = datetime.strptime(end_date, "%Y-%m-%d")
     current_date = datetime.strptime(date_cleaned, "%Y-%m-%d")
     time_to_expiry = (expiry_date - current_date).days / 365.0  # En années
 
     # Calcul du prix théorique de l'option via Black-Scholes
-    option = black_scholes(close, strike_price, time_to_expiry, risk_free_rate, volatility, option_type)
+    option = black_scholes(close, strike_price, time_to_expiry, risk_free_rate, vol_imp, option_type)
     option_price = option["price"]
 
-    print(f"\n📅 {date_cleaned} | Prix: {close:.2f} USD | Valeur option (Black-Scholes): {option_price:.2f} USD")
+    print(f"\n📅 {date_cleaned} | Prix: {close:.2f} USD | Vol impl.: {vol_imp:.2%} | Valeur option (BS): {option_price:.2f} USD")
 
     # Dernier jour : forcer la décision
     if i == len(data) - 1:
