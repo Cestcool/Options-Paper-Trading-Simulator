@@ -98,9 +98,6 @@ def plot_greeks(greeks_data, x_label="X", title_prefix=""):
 
     plt.suptitle(f"Greeks en fonction de {x_label}", fontsize=14)
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-<<<<<<< HEAD
-    plt.show()
-=======
     plt.show()
     
 option = black_scholes(237.8, 240, 3/365, 0.04, 1.46)
