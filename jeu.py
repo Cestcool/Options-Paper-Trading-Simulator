@@ -54,7 +54,7 @@ for i, row in data.iterrows():
     # Simulation d'une nouvelle volatilité implicite
     vol_imp = max(0.01, vol_imp * (1 + daily_noise + market_impact))  # Garde une vol minimale
     vol_history.append(vol_imp)
-    
+
     # Calcul du temps restant jusqu'à expiration
     expiry_date = datetime.strptime(end_date, "%Y-%m-%d")
     current_date = datetime.strptime(date_cleaned, "%Y-%m-%d")
